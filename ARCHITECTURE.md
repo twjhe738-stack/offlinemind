@@ -2,13 +2,13 @@
 
 ## Current state
 
-This is a single `:app` Android application using Kotlin and Jetpack Compose. The current UI is a static foundation screen. `GenerationStateMachine` defines and tests legal generation-state transitions; no production inference path calls it yet. There is no database, model registry, importer, or native library.
+This is a single `:app` Android application using Kotlin and Jetpack Compose. The current UI is a static foundation screen. `GenerationStateMachine` defines and tests legal generation-state transitions; no production inference path calls it yet. `LlmManager` is an unconnected MediaPipe streaming adapter; there is no database, model registry, or importer.
 
 The application manifest deliberately declares no permissions. In particular, no `INTERNET` permission is present in the source manifest. `allowBackup=false` is set because local conversations/models are intended to remain on-device; persistence is not implemented yet.
 
 ## Intended boundaries
 
-Keep Compose/UI separate from domain orchestration, local data, Android storage, and the inference implementation. The eventual inference boundary should own model load/unload and single-context serialization, expose typed failures and incremental output, and define a stop operation whose native behavior has been verified. The UI must not call JNI directly.
+Keep Compose/UI separate from domain orchestration, local data, Android storage, and the inference implementation. The inference boundary should own model load/unload and single-context serialization, expose failures and incremental output, and define a stop operation whose native behavior has been verified. `LlmManager` serializes collections per instance and closes its native inference task when the stream ends or is cancelled. MediaPipe 0.10.14 exposes no dedicated stop-generation method through this adapter; cancellation behavior and repeated native generations remain unverified. Do not wire it to UI controls until those behaviors are tested. The UI must not call JNI directly.
 
 For model import, use the Storage Access Framework and copy from the selected `content://` URI into app-private storage using bounded buffers. Do not retain a user-controlled filename as a filesystem path. Record the imported model only after a complete, validated copy.
 

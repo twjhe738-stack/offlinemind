@@ -12,7 +12,7 @@ python3 scripts/check_no_internet_permission.py \
   --apk app/build/outputs/apk/debug/app-debug.apk
 ```
 
-The unit tests cover legal, invalid, stopped, failed, and retried generation-state transitions. They do not test a model or infer that the native engine works.
+The unit tests cover legal, invalid, stopped, failed, and retried generation-state transitions. They do not test `LlmManager`, a model, cancellation against the native engine, or infer that native inference works. `LlmManager` is not connected to the UI; verify cancellation cleanup and repeated generation on-device before exposing controls.
 
 The permission script parses the source and merged manifests and checks packaged APK permissions using Android SDK tooling. CI runs it after building the debug APK. A source-only check can be run before building:
 

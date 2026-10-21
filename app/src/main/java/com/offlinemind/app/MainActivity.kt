@@ -3,88 +3,97 @@ package com.offlinemind.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import java.io.File
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val modelFile = File(filesDir, "model.bin")
+
         setContent {
-            OfflineMindApp()
-        }
-    }
-}
+            var prompt by remember { mutableStateOf("") }
+            var response by remember { mutableStateOf("") }
+            var isGenerating by remember { mutableStateOf(false) }
+            val scope = rememberCoroutineScope()
+            val scrollState = rememberScrollState()
 
-@Composable
-private fun OfflineMindApp() {
-    MaterialTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(PaddingValues(horizontal = 24.dp, vertical = 32.dp)),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
             ) {
-                Text(
-                    text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.headlineLarge,
-                )
-                Text(
-                    text = stringResource(R.string.app_tagline),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                StatusCard(
-                    title = stringResource(R.string.foundation_title),
-                    description = stringResource(R.string.foundation_description),
-                )
-                StatusCard(
-                    title = stringResource(R.string.model_status_title),
-                    status = stringResource(R.string.model_status_empty),
-                    description = stringResource(R.string.model_status_description),
-                )
-                StatusCard(
-                    title = stringResource(R.string.privacy_title),
-                    description = stringResource(R.string.privacy_description),
-                )
-                Text(
-                    text = stringResource(R.string.roadmap_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-    }
-}
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .verticalScroll(scrollState)
+                ) {
+                    Text(
+                        text = "OfflineMind AI",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
 
-@Composable
-private fun StatusCard(
-    title: String,
-    description: String,
-    status: String? = null,
-) {
-    Card {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
-            status?.let {
-                Text(text = it, style = MaterialTheme.typography.bodyLarge)
+                    OutlinedTextField(
+                        value = prompt,
+                        onValueChange = { prompt = it },
+                        label = { Text("Ask your offline model...") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = {
+                            if (modelFile.exists()) {
+                                isGenerating = true
+                                response = ""
+                                val manager = LlmManager(this@MainActivity, modelFile.absolutePath)
+                                scope.launch {
+                                    try {
+                                        manager.generateResponseStream(prompt).collect { token ->
+                                            response += token
+                                        }
+                                    } catch (e: Exception) {
+                                        response = "Error: ${e.localizedMessage}"
+                                    } finally {
+                                        isGenerating = false
+                                    }
+                                }
+                            } else {
+                                response = "Model file not found at: ${modelFile.absolutePath}\nPlease place a valid MediaPipe .bin model file there."
+                            }
+                        },
+                        enabled = !isGenerating && prompt.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (isGenerating) "Generating Response..." else "Generate")
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = "Response:",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = response.ifEmpty { "Responses will appear here..." },
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
-            Text(text = description, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

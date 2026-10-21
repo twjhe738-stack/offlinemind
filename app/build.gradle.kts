@@ -52,6 +52,11 @@ kotlin {
 }
 
 dependencies {
+    implementation("com.google.mediapipe:tasks-genai:0.10.14")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+    implementation("com.google.mediapipe:tasks-genai:0.10.14")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.ui)
@@ -61,4 +66,6 @@ dependencies {
     testImplementation(libs.junit)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
-}
+    implementation("com.google.mediapipe:tasks-genai:0.10.14")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+  }
