@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">OfflineMind</string>
+    <string name="app_tagline">Local AI, designed to stay on this device.</string>
+    <string name="foundation_title">Development foundation</string>
+    <string name="foundation_description">This initial build establishes the Android app shell. It does not yet import models or generate responses.</string>
+    <string name="model_status_title">Model status</string>
+    <string name="model_status_empty">No model loaded</string>
+    <string name="model_status_description">Model import and local inference are not implemented yet.</string>
+    <string name="privacy_title">Offline by design</string>
+    <string name="privacy_description">This build has no network permission and does not send prompts or responses anywhere. It cannot generate responses yet.</string>
+    <string name="roadmap_hint">Model import, local inference, and saved conversations are the next implementation stages.</string>
+</resources>
